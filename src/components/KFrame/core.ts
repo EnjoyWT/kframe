@@ -36,6 +36,10 @@ class Iframe {
     this.instance.onload = onLoad
     this.instance.onerror = onError
     if (allow) this.instance.allow = allow
+
+    // 新增：添加过渡效果，使切换更平滑（如不需要可删除此行）
+    this.instance.style.transition = 'opacity 0.2s ease-in-out, visibility 0.2s ease-in-out'
+
     this.hide()
     this.instance.src = src
     document.body.appendChild(this.instance)
@@ -48,18 +52,30 @@ class Iframe {
     }
   }
   hide() {
+    // 新方案：使用 opacity + visibility，避免 display:none 导致的白屏问题
+    // iframe 保持渲染状态，切换更流畅
     this.setElementStyle({
-      display: 'none',
-      position: 'absolute',
-      left: '0px',
-      top: '0px',
-      width: '0px',
-      height: '0px',
+      opacity: '0',
+      'pointer-events': 'none',
+      visibility: 'hidden',
     })
+
+    // 旧方案（如需恢复请使用以下代码）：
+    // this.setElementStyle({
+    //   display: 'none',
+    //   position: 'absolute',
+    //   left: '0px',
+    //   top: '0px',
+    //   width: '0px',
+    //   height: '0px',
+    // })
   }
   show(rect: IframeRect) {
+    // 新方案：使用 opacity + visibility，保持渲染状态
     this.setElementStyle({
-      display: 'block',
+      opacity: '1',
+      'pointer-events': 'auto',
+      visibility: 'visible',
       position: 'absolute',
       left: rect.left + 'px',
       top: rect.top + 'px',
@@ -68,6 +84,18 @@ class Iframe {
       border: '0',
       'z-index': String(rect.zIndex) || 'auto',
     })
+
+    // 旧方案（如需恢复请使用以下代码）：
+    // this.setElementStyle({
+    //   display: 'block',
+    //   position: 'absolute',
+    //   left: rect.left + 'px',
+    //   top: rect.top + 'px',
+    //   width: rect.width + 'px',
+    //   height: rect.height + 'px',
+    //   border: '0',
+    //   'z-index': String(rect.zIndex) || 'auto',
+    // })
   }
   resize(rect: IframeRect) {
     this.show(rect)

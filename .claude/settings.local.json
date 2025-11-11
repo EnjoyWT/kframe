@@ -3,7 +3,8 @@
     "allow": [
       "Bash(pnpm install)",
       "Bash(timeout 10 pnpm dev:*)",
-      "Bash(pnpm build:lib:*)"
+      "Bash(pnpm build:lib:*)",
+      "Read(//Users/sh/work/raven-lawhostapp/src/prototype/**)"
     ],
     "deny": [],
     "ask": []

@@ -1,22 +1,44 @@
 {
   "name": "kframe",
   "version": "1.0.0",
+  "description": "A Vue 3 iframe management component and utility library",
   "private": false,
   "type": "module",
+  "main": "./dist/kframe.umd.js",
+  "module": "./dist/kframe.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/kframe.js",
+      "require": "./dist/kframe.umd.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
+    "build:lib": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
-    "type-check": "vue-tsc --build",
+    "type-check": "vue-tsc --build --force",
+    "prepare": "npm run build:lib",
     "lint:oxlint": "oxlint . --fix -D correctness --ignore-path .gitignore",
     "lint:eslint": "eslint . --fix",
     "lint": "run-s lint:*",
     "format": "prettier --write src/"
   },
+  "peerDependencies": {
+    "vue": "^3.5.0"
+  },
   "dependencies": {
-    "@vueuse/core": "^13.1.0",
-    "vue": "^3.5.13",
+    "@vueuse/core": "^13.1.0"
+  },
+  "optionalDependencies": {
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
@@ -36,7 +58,9 @@
     "sass-embedded": "^1.88.0",
     "typescript": "~5.8.0",
     "vite": "^6.2.4",
+    "vite-plugin-dts": "^4.3.0",
     "vite-plugin-vue-devtools": "^7.7.2",
+    "vue": "^3.5.13",
     "vue-tsc": "^2.2.8"
   }
 }

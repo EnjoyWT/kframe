@@ -12,7 +12,7 @@
 <script setup lang="ts">
 import { onActivated, onBeforeUnmount, onDeactivated, ref, watch } from 'vue'
 import { IFrameManager, getIncreaseId } from './core'
-import { useResizeObserver, useThrottleFn } from '@vueuse/core'
+import { useResizeObserver } from '@vueuse/core'
 
 defineOptions({
   name: 'KFrame',
@@ -106,9 +106,20 @@ const showFrame = () => {
 const hideFrame = () => {
   IFrameManager.hideFrame(uid)
 }
-const resizeFrame = useThrottleFn(() => {
+// 去掉节流/防抖，实时更新坐标，让 iframe 跟随动画
+// resize 操作很轻量（只设置CSS属性），不需要节流
+const resizeFrame = () => {
   IFrameManager.resizeFrame(uid, getFrameContainerRect())
-})
+}
+
+// 旧实现（使用节流会导致坐标不准确）：
+// const resizeFrame = useThrottleFn(() => {
+//   IFrameManager.resizeFrame(uid, getFrameContainerRect())
+// })
+// 或使用防抖（会造成视觉卡顿）：
+// const resizeFrame = useDebounceFn(() => {
+//   IFrameManager.resizeFrame(uid, getFrameContainerRect())
+// }, 350)
 
 const destroyFrame = () => {
   IFrameManager.destroyFrame(uid)

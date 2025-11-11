@@ -39,14 +39,39 @@ const isError = ref(false)
 let readyFlag = false
 
 const getFrameContainerRect = () => {
-  const { x, y, width, height } = frameContainer.value?.getBoundingClientRect() || {}
+  const rect = frameContainer.value?.getBoundingClientRect()
+
+  // 如果容器不存在，返回默认值
+  if (!rect) {
+    return {
+      left: 0,
+      top: 0,
+      width: 0,
+      height: 0,
+      zIndex: props.zIndex ?? 'auto',
+    }
+  }
+
+  // 修复：将视口坐标转换为文档坐标
+  // getBoundingClientRect() 返回相对于视口的坐标
+  // 但 iframe 使用 position:absolute 相对于文档定位
+  // 所以需要加上页面滚动距离
   return {
-    left: x || 0,
-    top: y || 0,
-    width: width || 0,
-    height: height || 0,
+    left: rect.left + window.scrollX,   // 视口X + 水平滚动 = 文档X
+    top: rect.top + window.scrollY,     // 视口Y + 垂直滚动 = 文档Y
+    width: rect.width,
+    height: rect.height,
     zIndex: props.zIndex ?? 'auto',
   }
+
+  // 旧实现（有 bug，滚动时定位错误）：
+  // return {
+  //   left: x || 0,
+  //   top: y || 0,
+  //   width: width || 0,
+  //   height: height || 0,
+  //   zIndex: props.zIndex ?? 'auto',
+  // }
 }
 
 const createFrame = () => {

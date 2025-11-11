@@ -1,23 +1,25 @@
+简体中文 | [English](./README.en.md)
+
 # kframe
 
-Component of iframe to support Vue KeepAlive
+支持 Vue KeepAlive 的 iframe 管理组件
 
-## 📦 Installation
+## 📦 安装
 
-### From GitHub
+### 从 GitHub 安装
 
 ```sh
-# Using npm
+# 使用 npm
 npm install git+https://github.com/EnjoyWT/kframe.git
 
-# Using pnpm
+# 使用 pnpm
 pnpm add git+https://github.com/EnjoyWT/kframe.git
 
-# Using yarn
+# 使用 yarn
 yarn add git+https://github.com/EnjoyWT/kframe.git
 ```
 
-Or add to your `package.json`:
+或者在 `package.json` 中添加：
 
 ```json
 {
@@ -27,19 +29,19 @@ Or add to your `package.json`:
 }
 ```
 
-## 🚀 Usage
+## 🚀 使用
 
-### Import in your Vue 3 project
+### 在 Vue 3 项目中引入
 
 ```typescript
-// Import the component
+// 引入组件
 import { KFrame, IFrameManager } from 'kframe'
 import 'kframe/dist/kframe.css'
 
-// Register the component
+// 全局注册组件
 app.component('KFrame', KFrame)
 
-// Or use in your component
+// 或在组件中使用
 import { KFrame } from 'kframe'
 
 export default {
@@ -49,19 +51,19 @@ export default {
 }
 ```
 
-### Using IFrameManager
+### 使用 IFrameManager
 
 ```typescript
 import { IFrameManager } from 'kframe'
 
-// Create an iframe
+// 创建 iframe
 IFrameManager.createFame(
   {
     uid: 'unique-id',
     src: 'https://example.com',
     name: 'MyFrame',
-    onLoad: (e) => console.log('Loaded'),
-    onError: (e) => console.error('Error', e),
+    onLoad: (e) => console.log('已加载'),
+    onError: (e) => console.error('错误', e),
   },
   {
     left: 0,
@@ -72,37 +74,148 @@ IFrameManager.createFame(
   },
 )
 
-// Show/Hide iframe
+// 显示/隐藏 iframe
 IFrameManager.showFrame('unique-id', { left: 0, top: 0, width: 800, height: 600 })
 IFrameManager.hideFrame('unique-id')
 
-// Destroy iframe
+// 销毁 iframe
 IFrameManager.destroyFrame('unique-id')
 ```
 
+### 使用 KFrame 组件并获取引用
+
+```vue
+<template>
+  <div>
+    <KFrame
+      ref="kframeRef"
+      src="https://example.com"
+      :keep-alive="true"
+      :z-index="100"
+      style="width: 100%; height: 100%"
+      @loaded="onLoaded"
+      @error="onError"
+    />
+    <button @click="sendMessage">向 iframe 发送消息</button>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { KFrame } from 'kframe'
+
+const kframeRef = ref()
+
+// 事件：iframe 加载成功
+const onLoaded = (e: Event) => {
+  console.log('iframe 加载成功', e)
+
+  // 现在可以安全地向 iframe 发送消息
+  const iframeElement = kframeRef.value?.getRef()
+  if (iframeElement?.contentWindow) {
+    iframeElement.contentWindow.postMessage({ type: 'init', data: 'ready' }, 'https://example.com')
+  }
+}
+
+// 事件：iframe 加载失败
+const onError = (e: string | Event) => {
+  console.error('iframe 加载失败', e)
+  // 处理错误，例如显示错误信息、重试加载等
+}
+
+// 向 iframe 发送消息
+const sendMessage = () => {
+  // 获取 iframe 元素引用
+  const iframeElement = kframeRef.value?.getRef()
+
+  if (iframeElement?.contentWindow) {
+    iframeElement.contentWindow.postMessage(
+      { type: 'hello', data: 'world' },
+      '*', // 或指定具体的 origin，例如 'https://example.com' 以提高安全性
+    )
+  }
+}
+
+// 可选：监听来自 iframe 的消息
+onMounted(() => {
+  window.addEventListener('message', (event) => {
+    // 验证来源以确保安全
+    if (event.origin !== 'https://example.com') return
+
+    console.log('收到来自 iframe 的消息:', event.data)
+  })
+})
+</script>
+```
+
+### KFrame 组件属性 (Props)
+
+| 属性        | 类型               | 默认值   | 描述                                                                                                                                               |
+| ----------- | ------------------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src`       | `string`           | `''`     | iframe 源地址。要在 iframe 中加载的 URL。                                                                                                          |
+| `zIndex`    | `string \| number` | `'auto'` | iframe 的 z-index。控制 iframe 元素的堆叠顺序。                                                                                                    |
+| `keepAlive` | `boolean`          | `true`   | 当组件失活时是否保持 iframe 存活（配合 Vue `<KeepAlive>` 使用）。为 `true` 时，iframe 会被隐藏但不会销毁；为 `false` 时，iframe 会在失活时被销毁。 |
+
+### KFrame 组件事件 (Events)
+
+| 事件     | 参数                   | 描述                                                                       |
+| -------- | ---------------------- | -------------------------------------------------------------------------- |
+| `loaded` | `(e: Event)`           | 当 iframe 成功加载时触发。可以在此事件中安全地向 iframe 发送初始消息。     |
+| `error`  | `(e: string \| Event)` | 当 iframe 加载失败时触发。可以在此事件中处理错误、显示错误信息或重试加载。 |
+
+### KFrame 组件插槽 (Slots)
+
+| 插槽          | 描述                        | 默认内容    |
+| ------------- | --------------------------- | ----------- |
+| `placeholder` | 当 `src` 为空时显示的内容   | "暂无数据"  |
+| `loading`     | iframe 加载中时显示的内容   | "加载中..." |
+| `error`       | iframe 加载失败时显示的内容 | "加载失败"  |
+
+**自定义插槽示例：**
+
+```vue
+<KFrame src="https://example.com">
+  <template #placeholder>
+    <div>未提供 URL</div>
+  </template>
+  <template #loading>
+    <div class="spinner">正在加载 iframe...</div>
+  </template>
+  <template #error>
+    <div class="error-message">加载 iframe 失败，请重试。</div>
+  </template>
+</KFrame>
+```
+
+### KFrame 组件暴露的方法 (Exposed Methods)
+
+| 方法       | 返回类型                    | 描述                                              |
+| ---------- | --------------------------- | ------------------------------------------------- |
+| `getRef()` | `HTMLIFrameElement \| null` | 获取 iframe 元素引用，用于发送 postMessage 等操作 |
+
 ---
 
-## 🛠️ Development
+## 🛠️ 开发
 
-## Project Setup
+### 项目设置
 
 ```sh
 pnpm install
 ```
 
-### Compile and Hot-Reload for Development
+### 编译并热重载用于开发
 
 ```sh
 pnpm dev
 ```
 
-### Type-Check, Compile and Minify for npm package
+### 类型检查、编译并压缩用于生产
 
 ```sh
 pnpm build
 ```
 
-### Lint with [ESLint](https://eslint.org/)
+### 使用 [ESLint](https://eslint.org/) 进行代码检查
 
 ```sh
 pnpm lint
@@ -110,6 +223,6 @@ pnpm lint
 
 ---
 
-## 📄 Credits
+## 📄 致谢
 
-This repository is based on [canmick/kframe](https://github.com/canmick/kframe) with additional build configuration for npm package distribution.
+本仓库基于 [canmick/kframe](https://github.com/canmick/kframe)，并增加了 npm 包构建配置。

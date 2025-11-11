@@ -107,3 +107,9 @@ pnpm build
 ```sh
 pnpm lint
 ```
+
+---
+
+## 📄 Credits
+
+This repository is based on [canmick/kframe](https://github.com/canmick/kframe) with additional build configuration for npm package distribution.

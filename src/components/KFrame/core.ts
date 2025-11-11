@@ -37,8 +37,9 @@ class Iframe {
     this.instance.onerror = onError
     if (allow) this.instance.allow = allow
 
-    // 新增：添加过渡效果，使切换更平滑（如不需要可删除此行）
-    this.instance.style.transition = 'opacity 0.2s ease-in-out, visibility 0.2s ease-in-out'
+    // 不添加 transition，保持瞬间切换，避免白屏视觉效果
+    // 如需平滑过渡可添加：
+    // this.instance.style.transition = 'opacity 0.2s ease-in-out, visibility 0.2s ease-in-out'
 
     this.hide()
     this.instance.src = src

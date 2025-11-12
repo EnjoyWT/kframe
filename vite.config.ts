@@ -6,12 +6,16 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 import dts from 'vite-plugin-dts'
 
 // https://vite.dev/config/
-export default defineConfig(({ command }) => {
+export default defineConfig(({ command, mode }) => {
+  const isDev = command === 'serve'
+  const isBuild = command === 'build'
+
   return {
-    publicDir: command === 'build' ? false : undefined,
+    publicDir: isBuild ? false : undefined,
     plugins: [
       vue(),
-      vueDevTools(),
+      // 只在开发模式下启用 vue-devtools
+      ...(isDev ? [vueDevTools()] : []),
       dts({
         include: ['src/components/KFrame'],
         entryRoot: './src/components/KFrame',
@@ -35,6 +39,11 @@ export default defineConfig(({ command }) => {
         formats: ['es', 'umd'],
         fileName: (format) => `kframe.${format === 'es' ? 'js' : 'umd.js'}`,
       },
+      cssCodeSplit: false,
+      cssMinify: true,
+      minify: 'esbuild',
+      // 使用 esbuild 压缩，性能更好
+      // 如需使用 terser，需要安装 terser 依赖
       rollupOptions: {
         external: ['vue', '@vueuse/core'],
         output: {
@@ -43,6 +52,13 @@ export default defineConfig(({ command }) => {
             '@vueuse/core': 'VueUse',
           },
           exports: 'named',
+          // 确保 CSS 文件正确输出
+          assetFileNames: (assetInfo) => {
+            if (assetInfo.name === 'style.css') {
+              return 'kframe.css'
+            }
+            return assetInfo.name || 'asset'
+          },
         },
       },
     },

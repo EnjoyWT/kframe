@@ -57,8 +57,8 @@ const getFrameContainerRect = () => {
   // 但 iframe 使用 position:absolute 相对于文档定位
   // 所以需要加上页面滚动距离
   return {
-    left: rect.left + window.scrollX,   // 视口X + 水平滚动 = 文档X
-    top: rect.top + window.scrollY,     // 视口Y + 垂直滚动 = 文档Y
+    left: rect.left + window.scrollX, // 视口X + 水平滚动 = 文档X
+    top: rect.top + window.scrollY, // 视口Y + 垂直滚动 = 文档Y
     width: rect.width,
     height: rect.height,
     zIndex: props.zIndex ?? 'auto',
@@ -78,7 +78,7 @@ const createFrame = () => {
   isError.value = false
   isLoading.value = true
 
-  IFrameManager.createFame(
+  IFrameManager.createFrame(
     {
       uid,
       name: uid,

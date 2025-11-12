@@ -4,7 +4,8 @@
       "Bash(pnpm install)",
       "Bash(timeout 10 pnpm dev:*)",
       "Bash(pnpm build:lib:*)",
-      "Read(//Users/sh/work/raven-lawhostapp/src/prototype/**)"
+      "Read(//Users/sh/work/raven-lawhostapp/src/prototype/**)",
+      "Read(//Users/sh/Desktop/work/client-rpa/src/renderer/src/layouts/sidebar/**)"
     ],
     "deny": [],
     "ask": []

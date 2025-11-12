@@ -10,6 +10,8 @@ Component of iframe to support Vue KeepAlive
 
 ### From GitHub
 
+#### Install Latest Version (Default)
+
 ```sh
 # Using npm
 npm install git+https://github.com/EnjoyWT/kframe.git
@@ -30,6 +32,93 @@ Or add to your `package.json`:
   }
 }
 ```
+
+#### Install Specific Version
+
+When installing from GitHub, you can specify a version using the following methods:
+
+**1. Using Git Tags** (Recommended)
+
+```sh
+# Install specific tag version
+npm install git+https://github.com/EnjoyWT/kframe.git#v1.0.0
+pnpm add git+https://github.com/EnjoyWT/kframe.git#v1.0.0
+yarn add git+https://github.com/EnjoyWT/kframe.git#v1.0.0
+```
+
+In `package.json`:
+
+```json
+{
+  "dependencies": {
+    "kframe": "github:EnjoyWT/kframe#v1.0.0"
+  }
+}
+```
+
+**2. Using Commit SHA**
+
+```sh
+# Install specific commit version
+npm install git+https://github.com/EnjoyWT/kframe.git#abc123def456
+pnpm add git+https://github.com/EnjoyWT/kframe.git#abc123def456
+yarn add git+https://github.com/EnjoyWT/kframe.git#abc123def456
+```
+
+In `package.json`:
+
+```json
+{
+  "dependencies": {
+    "kframe": "github:EnjoyWT/kframe#abc123def456"
+  }
+}
+```
+
+**3. Using Branch Name**
+
+```sh
+# Install specific branch
+npm install git+https://github.com/EnjoyWT/kframe.git#develop
+pnpm add git+https://github.com/EnjoyWT/kframe.git#develop
+yarn add git+https://github.com/EnjoyWT/kframe.git#develop
+```
+
+In `package.json`:
+
+```json
+{
+  "dependencies": {
+    "kframe": "github:EnjoyWT/kframe#develop"
+  }
+}
+```
+
+**4. Using SSH Protocol**
+
+```sh
+# Using SSH (requires SSH key configuration)
+npm install git+ssh://git@github.com/EnjoyWT/kframe.git#v1.0.0
+pnpm add git+ssh://git@github.com/EnjoyWT/kframe.git#v1.0.0
+yarn add git+ssh://git@github.com/EnjoyWT/kframe.git#v1.0.0
+```
+
+In `package.json`:
+
+```json
+{
+  "dependencies": {
+    "kframe": "git+ssh://git@github.com/EnjoyWT/kframe.git#v1.0.0"
+  }
+}
+```
+
+> **Tip**: It's recommended to use Git tags for version management. Commands to create a tag:
+>
+> ```sh
+> git tag -a v1.0.0 -m "Release version 1.0.0"
+> git push origin v1.0.0
+> ```
 
 ## 🚀 Usage
 
@@ -59,7 +148,7 @@ export default {
 import { IFrameManager } from 'kframe'
 
 // Create an iframe
-IFrameManager.createFame(
+IFrameManager.createFrame(
   {
     uid: 'unique-id',
     src: 'https://example.com',
@@ -115,10 +204,7 @@ const onLoaded = (e: Event) => {
   // Now you can safely send messages to iframe
   const iframeElement = kframeRef.value?.getRef()
   if (iframeElement?.contentWindow) {
-    iframeElement.contentWindow.postMessage(
-      { type: 'init', data: 'ready' },
-      'https://example.com'
-    )
+    iframeElement.contentWindow.postMessage({ type: 'init', data: 'ready' }, 'https://example.com')
   }
 }
 
@@ -136,7 +222,7 @@ const sendMessage = () => {
   if (iframeElement?.contentWindow) {
     iframeElement.contentWindow.postMessage(
       { type: 'hello', data: 'world' },
-      '*' // or specify origin like 'https://example.com' for security
+      '*', // or specify origin like 'https://example.com' for security
     )
   }
 }
@@ -155,26 +241,26 @@ onMounted(() => {
 
 ### KFrame Component Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `src` | `string` | `''` | iframe source URL. The URL to load in the iframe. |
-| `zIndex` | `string \| number` | `'auto'` | iframe z-index. Controls the stacking order of the iframe element. |
-| `keepAlive` | `boolean` | `true` | Keep iframe alive when component is deactivated (with Vue `<KeepAlive>`). When `true`, iframe is hidden but not destroyed; when `false`, iframe is destroyed on deactivation. |
+| Prop        | Type               | Default  | Description                                                                                                                                                                   |
+| ----------- | ------------------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src`       | `string`           | `''`     | iframe source URL. The URL to load in the iframe.                                                                                                                             |
+| `zIndex`    | `string \| number` | `'auto'` | iframe z-index. Controls the stacking order of the iframe element.                                                                                                            |
+| `keepAlive` | `boolean`          | `true`   | Keep iframe alive when component is deactivated (with Vue `<KeepAlive>`). When `true`, iframe is hidden but not destroyed; when `false`, iframe is destroyed on deactivation. |
 
 ### KFrame Component Events
 
-| Event | Parameters | Description |
-|-------|-----------|-------------|
-| `loaded` | `(e: Event)` | Fired when iframe successfully loaded. Use this event to safely send initial messages to iframe. |
-| `error` | `(e: string \| Event)` | Fired when iframe fails to load. Use this event to handle errors, show error messages, or retry loading. |
+| Event    | Parameters             | Description                                                                                              |
+| -------- | ---------------------- | -------------------------------------------------------------------------------------------------------- |
+| `loaded` | `(e: Event)`           | Fired when iframe successfully loaded. Use this event to safely send initial messages to iframe.         |
+| `error`  | `(e: string \| Event)` | Fired when iframe fails to load. Use this event to handle errors, show error messages, or retry loading. |
 
 ### KFrame Component Slots
 
-| Slot | Description | Default Content |
-|------|-------------|-----------------|
-| `placeholder` | Content shown when `src` is empty | "暂无数据" |
-| `loading` | Content shown while iframe is loading | "加载中..." |
-| `error` | Content shown when iframe fails to load | "加载失败" |
+| Slot          | Description                             | Default Content |
+| ------------- | --------------------------------------- | --------------- |
+| `placeholder` | Content shown when `src` is empty       | "暂无数据"      |
+| `loading`     | Content shown while iframe is loading   | "加载中..."     |
+| `error`       | Content shown when iframe fails to load | "加载失败"      |
 
 **Example with custom slots:**
 
@@ -194,10 +280,9 @@ onMounted(() => {
 
 ### KFrame Component Exposed Methods
 
-| Method | Return Type | Description |
-|--------|------------|-------------|
+| Method     | Return Type                 | Description                  |
+| ---------- | --------------------------- | ---------------------------- |
 | `getRef()` | `HTMLIFrameElement \| null` | Get iframe element reference |
-
 
 ---
 

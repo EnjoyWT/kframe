@@ -12,8 +12,16 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/kframe.js",
       "require": "./dist/kframe.umd.js"
-    }
+    },
+    "./dist/kframe.css": {
+      "default": "./dist/kframe.css"
+    },
+    "./package.json": "./package.json"
   },
+  "sideEffects": [
+    "*.css",
+    "*.vue"
+  ],
   "files": [
     "dist",
     "README.md",
@@ -37,9 +45,6 @@
   },
   "dependencies": {
     "@vueuse/core": "^13.1.0"
-  },
-  "optionalDependencies": {
-    "vue-router": "^4.5.0"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.1",

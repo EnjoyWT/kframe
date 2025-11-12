@@ -8,6 +8,8 @@
 
 ### 从 GitHub 安装
 
+#### 安装最新版本（默认）
+
 ```sh
 # 使用 npm
 npm install git+https://github.com/EnjoyWT/kframe.git
@@ -28,6 +30,93 @@ yarn add git+https://github.com/EnjoyWT/kframe.git
   }
 }
 ```
+
+#### 指定版本安装
+
+从 GitHub 安装时，可以通过以下方式指定版本：
+
+**1. 使用 Git 标签（Tag）**（推荐）
+
+```sh
+# 安装特定标签版本
+npm install git+https://github.com/EnjoyWT/kframe.git#v1.0.0
+pnpm add git+https://github.com/EnjoyWT/kframe.git#v1.0.0
+yarn add git+https://github.com/EnjoyWT/kframe.git#v1.0.0
+```
+
+在 `package.json` 中：
+
+```json
+{
+  "dependencies": {
+    "kframe": "github:EnjoyWT/kframe#v1.0.0"
+  }
+}
+```
+
+**2. 使用提交 SHA（Commit Hash）**
+
+```sh
+# 安装特定提交版本
+npm install git+https://github.com/EnjoyWT/kframe.git#abc123def456
+pnpm add git+https://github.com/EnjoyWT/kframe.git#abc123def456
+yarn add git+https://github.com/EnjoyWT/kframe.git#abc123def456
+```
+
+在 `package.json` 中：
+
+```json
+{
+  "dependencies": {
+    "kframe": "github:EnjoyWT/kframe#abc123def456"
+  }
+}
+```
+
+**3. 使用分支名**
+
+```sh
+# 安装特定分支
+npm install git+https://github.com/EnjoyWT/kframe.git#develop
+pnpm add git+https://github.com/EnjoyWT/kframe.git#develop
+yarn add git+https://github.com/EnjoyWT/kframe.git#develop
+```
+
+在 `package.json` 中：
+
+```json
+{
+  "dependencies": {
+    "kframe": "github:EnjoyWT/kframe#develop"
+  }
+}
+```
+
+**4. 使用 SSH 协议**
+
+```sh
+# 使用 SSH（需要配置 SSH 密钥）
+npm install git+ssh://git@github.com/EnjoyWT/kframe.git#v1.0.0
+pnpm add git+ssh://git@github.com/EnjoyWT/kframe.git#v1.0.0
+yarn add git+ssh://git@github.com/EnjoyWT/kframe.git#v1.0.0
+```
+
+在 `package.json` 中：
+
+```json
+{
+  "dependencies": {
+    "kframe": "git+ssh://git@github.com/EnjoyWT/kframe.git#v1.0.0"
+  }
+}
+```
+
+> **提示**：推荐使用 Git 标签来管理版本。创建标签的命令：
+>
+> ```sh
+> git tag -a v1.0.0 -m "Release version 1.0.0"
+> git push origin v1.0.0
+> ```
 
 ## 🚀 使用
 
@@ -53,11 +142,13 @@ export default {
 
 ### 使用 IFrameManager
 
+#### 在 Vue 3 项目中使用
+
 ```typescript
 import { IFrameManager } from 'kframe'
 
 // 创建 iframe
-IFrameManager.createFame(
+IFrameManager.createFrame(
   {
     uid: 'unique-id',
     src: 'https://example.com',
@@ -81,6 +172,77 @@ IFrameManager.hideFrame('unique-id')
 // 销毁 iframe
 IFrameManager.destroyFrame('unique-id')
 ```
+
+#### 在纯 JavaScript 项目中使用
+
+虽然 `IFrameManager` 的核心逻辑不依赖 Vue，但由于构建配置，UMD 版本仍需要 Vue 作为依赖。你可以通过以下方式使用：
+
+**方式 1：使用 UMD 构建（需要 Vue）**
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="./dist/kframe.umd.js"></script>
+  </head>
+  <body>
+    <script>
+      // 使用全局变量
+      const { IFrameManager } = window.KFrame
+
+      // 创建 iframe
+      IFrameManager.createFrame(
+        {
+          uid: 'my-iframe',
+          src: 'https://example.com',
+          onLoad: (e) => console.log('已加载'),
+          onError: (e) => console.error('错误', e),
+        },
+        {
+          left: 100,
+          top: 100,
+          width: 800,
+          height: 600,
+          zIndex: 100,
+        },
+      )
+
+      // 显示/隐藏 iframe
+      IFrameManager.showFrame('my-iframe', { left: 100, top: 100, width: 800, height: 600 })
+      IFrameManager.hideFrame('my-iframe')
+
+      // 销毁 iframe
+      IFrameManager.destroyFrame('my-iframe')
+    </script>
+  </body>
+</html>
+```
+
+**方式 2：使用 ES 模块（需要 Vue）**
+
+```javascript
+import { IFrameManager } from 'kframe'
+
+// 使用方式与 TypeScript 相同
+IFrameManager.createFrame(
+  {
+    uid: 'unique-id',
+    src: 'https://example.com',
+    onLoad: (e) => console.log('已加载'),
+    onError: (e) => console.error('错误', e),
+  },
+  {
+    left: 0,
+    top: 0,
+    width: 800,
+    height: 600,
+    zIndex: 100,
+  },
+)
+```
+
+> **注意**：`KFrame` 组件必须在 Vue 3 项目中使用，因为它是一个 Vue 组件。
 
 ### 使用 KFrame 组件并获取引用
 

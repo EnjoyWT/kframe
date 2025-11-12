@@ -112,8 +112,8 @@ class Iframe {
 }
 
 export class IFrameManager {
-  static frames = new Map()
-  static createFame(ops: IframeOptions, rect: IframeRect) {
+  static frames = new Map<string, Iframe>()
+  static createFrame(ops: IframeOptions, rect: IframeRect): Iframe {
     const existFrame = this.frames.get(ops.uid)
     if (existFrame) {
       existFrame.destroy()
@@ -123,24 +123,32 @@ export class IFrameManager {
     frame.show(rect)
     return frame
   }
-  static showFrame(uid: string, rect: IframeRect) {
+  static showFrame(uid: string, rect: IframeRect): void {
     const frame = this.frames.get(uid)
-    frame?.show(rect)
+    if (frame) {
+      frame.show(rect)
+    }
   }
-  static hideFrame(uid: string) {
+  static hideFrame(uid: string): void {
     const frame = this.frames.get(uid)
-    frame?.hide()
+    if (frame) {
+      frame.hide()
+    }
   }
-  static destroyFrame(uid: string) {
+  static destroyFrame(uid: string): void {
     const frame = this.frames.get(uid)
-    frame?.destroy()
-    this.frames.delete(uid)
+    if (frame) {
+      frame.destroy()
+      this.frames.delete(uid)
+    }
   }
-  static resizeFrame(uid: string, rect: IframeRect) {
+  static resizeFrame(uid: string, rect: IframeRect): void {
     const frame = this.frames.get(uid)
-    frame?.resize(rect)
+    if (frame) {
+      frame.resize(rect)
+    }
   }
-  static getFrame(uid: string) {
+  static getFrame(uid: string): Iframe | undefined {
     return this.frames.get(uid)
   }
 }

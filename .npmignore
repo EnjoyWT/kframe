@@ -1,0 +1,46 @@
+# 开发文件
+src/
+node_modules/
+.vscode/
+.idea/
+*.local
+
+# 配置文件
+vite.config.ts
+tsconfig*.json
+eslint.config.ts
+.prettierrc*
+.editorconfig
+
+# 开发环境文件
+index.html
+.env
+.env.*
+
+# 测试文件
+coverage/
+*.test.ts
+*.spec.ts
+**/__tests__/
+
+# 构建工具
+.git/
+.gitignore
+.claude/
+*.log
+.DS_Store
+
+# 开发脚本和文档
+public/
+*.md
+!README.md
+LICENSE
+
+# 开发依赖
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# 仅保留构建输出
+# dist/ 会被包含在 package.json 的 files 字段中
+

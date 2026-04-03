@@ -1,6 +1,6 @@
 <template>
   <div ref="frameContainer" class="k-frame">
-    <span v-if="!src" class="k-frame-tips">
+    <span v-if="!src && !srcdoc" class="k-frame-tips">
       <slot name="placeholder">暂无数据</slot>
     </span>
     <span v-else-if="isLoading" class="k-frame-tips">
@@ -10,7 +10,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { onActivated, onBeforeUnmount, onDeactivated, ref, watch } from 'vue'
+import { onActivated, onBeforeUnmount, onDeactivated, ref, watch, computed } from 'vue'
 import { IFrameManager, getIncreaseId } from './core'
 import { useResizeObserver } from '@vueuse/core'
 
@@ -20,19 +20,24 @@ defineOptions({
 
 const props = withDefaults(
   defineProps<{
-    src: string
+    uid?: string
+    src?: string
+    srcdoc?: string
     zIndex?: string | number
     keepAlive?: boolean
+    sandbox?: string
   }>(),
   {
     src: '',
     keepAlive: true,
+    sandbox: 'allow-scripts'
   },
 )
 
 const emits = defineEmits(['loaded', 'error'])
 
-const uid = `kFrame-${getIncreaseId()}`
+const internalUid = `kFrame-${getIncreaseId()}`
+const uid = computed(() => props.uid || internalUid)
 const frameContainer = ref()
 const isLoading = ref(false)
 const isError = ref(false)
@@ -63,15 +68,6 @@ const getFrameContainerRect = () => {
     height: rect.height,
     zIndex: props.zIndex ?? 'auto',
   }
-
-  // 旧实现（有 bug，滚动时定位错误）：
-  // return {
-  //   left: x || 0,
-  //   top: y || 0,
-  //   width: width || 0,
-  //   height: height || 0,
-  //   zIndex: props.zIndex ?? 'auto',
-  // }
 }
 
 const createFrame = () => {
@@ -80,12 +76,14 @@ const createFrame = () => {
 
   IFrameManager.createFrame(
     {
-      uid,
-      name: uid,
+      uid: uid.value,
+      name: uid.value,
       src: props.src,
+      srcdoc: props.srcdoc,
       onLoad: handleLoaded,
       onError: handleError,
       allow: 'fullscreen;autoplay',
+      sandbox: props.sandbox
     },
     getFrameContainerRect(),
   )
@@ -101,32 +99,23 @@ const handleError = (e: string | Event) => {
 }
 
 const showFrame = () => {
-  IFrameManager.showFrame(uid, getFrameContainerRect())
+  IFrameManager.showFrame(uid.value, getFrameContainerRect())
 }
 const hideFrame = () => {
-  IFrameManager.hideFrame(uid)
+  IFrameManager.hideFrame(uid.value)
 }
 // 去掉节流/防抖，实时更新坐标，让 iframe 跟随动画
 // resize 操作很轻量（只设置CSS属性），不需要节流
 const resizeFrame = () => {
-  IFrameManager.resizeFrame(uid, getFrameContainerRect())
+  IFrameManager.resizeFrame(uid.value, getFrameContainerRect())
 }
 
-// 旧实现（使用节流会导致坐标不准确）：
-// const resizeFrame = useThrottleFn(() => {
-//   IFrameManager.resizeFrame(uid, getFrameContainerRect())
-// })
-// 或使用防抖（会造成视觉卡顿）：
-// const resizeFrame = useDebounceFn(() => {
-//   IFrameManager.resizeFrame(uid, getFrameContainerRect())
-// }, 350)
-
 const destroyFrame = () => {
-  IFrameManager.destroyFrame(uid)
+  IFrameManager.destroyFrame(uid.value)
 }
 
 const getFrame = () => {
-  return IFrameManager.getFrame(uid)
+  return IFrameManager.getFrame(uid.value)
 }
 
 useResizeObserver(frameContainer, () => {
@@ -157,9 +146,9 @@ onActivated(() => {
 })
 
 watch(
-  () => [frameContainer.value, props.src],
-  (el, src) => {
-    if (el && src) {
+  () => [frameContainer.value, props.src, props.srcdoc],
+  () => {
+    if (frameContainer.value && (props.src || props.srcdoc)) {
       createFrame()
       readyFlag = true
     } else {

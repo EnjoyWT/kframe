@@ -1,12 +1,14 @@
 interface IframeOptions {
   uid: string
-  src: string
+  src?: string
+  srcdoc?: string
   name?: string
   width?: string
   height?: string
   className?: string
   style?: string
   allow?: string
+  sandbox?: string
   onLoad?: (e: Event) => void
   onError?: (e: string | Event) => void
 }
@@ -21,10 +23,12 @@ class Iframe {
   init() {
     const {
       src,
+      srcdoc,
       name = `Iframe-${Date.now()}`,
       className = '',
       style = '',
       allow,
+      sandbox,
       onLoad = () => {},
       onError = () => {},
     } = this.ops
@@ -36,13 +40,18 @@ class Iframe {
     this.instance.onload = onLoad
     this.instance.onerror = onError
     if (allow) this.instance.allow = allow
+    if (sandbox) this.instance.sandbox = sandbox
 
     // 不添加 transition，保持瞬间切换，避免白屏视觉效果
     // 如需平滑过渡可添加：
     // this.instance.style.transition = 'opacity 0.2s ease-in-out, visibility 0.2s ease-in-out'
 
     this.hide()
-    this.instance.src = src
+    if (srcdoc) {
+      this.instance.srcdoc = srcdoc
+    } else if (src) {
+      this.instance.src = src
+    }
     document.body.appendChild(this.instance)
   }
   setElementStyle(style: Record<string, string>) {
@@ -59,6 +68,11 @@ class Iframe {
       opacity: '0',
       'pointer-events': 'none',
       visibility: 'hidden',
+      position: 'absolute',
+      left: '0',
+      top: '0',
+      width: '0',
+      height: '0',
     })
 
     // 旧方案（如需恢复请使用以下代码）：
@@ -109,6 +123,16 @@ class Iframe {
       this.instance = null
     }
   }
+  updateSrcDoc(srcdoc: string) {
+    if (this.instance) {
+      this.instance.srcdoc = srcdoc
+    }
+  }
+  updateSrc(src: string) {
+    if (this.instance) {
+      this.instance.src = src
+    }
+  }
 }
 
 export class IFrameManager {
@@ -116,7 +140,14 @@ export class IFrameManager {
   static createFrame(ops: IframeOptions, rect: IframeRect): Iframe {
     const existFrame = this.frames.get(ops.uid)
     if (existFrame) {
-      existFrame.destroy()
+      // If srcdoc changed, update it instead of destroying
+      if (ops.srcdoc && existFrame.instance && existFrame.instance.srcdoc !== ops.srcdoc) {
+        existFrame.updateSrcDoc(ops.srcdoc)
+      } else if (ops.src && existFrame.instance && existFrame.instance.src !== ops.src) {
+        existFrame.updateSrc(ops.src)
+      }
+      existFrame.show(rect)
+      return existFrame
     }
     const frame = new Iframe(ops)
     this.frames.set(ops.uid, frame)

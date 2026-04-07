@@ -26,6 +26,7 @@ const props = withDefaults(
     zIndex?: string | number
     keepAlive?: boolean
     sandbox?: string
+    container?: HTMLElement | string
   }>(),
   {
     src: '',
@@ -57,22 +58,35 @@ const getFrameContainerRect = () => {
     }
   }
 
-  // 修复：将视口坐标转换为文档坐标
-  // getBoundingClientRect() 返回相对于视口的坐标
-  // 但 iframe 使用 position:absolute 相对于文档定位
-  // 所以需要加上页面滚动距离
-  return {
-    left: rect.left + window.scrollX, // 视口X + 水平滚动 = 文档X
-    top: rect.top + window.scrollY, // 视口Y + 垂直滚动 = 文档Y
-    width: rect.width,
-    height: rect.height,
-    zIndex: props.zIndex ?? 'auto',
+  const containerElement = (typeof props.container === 'string' ? document.querySelector(props.container) : props.container) as HTMLElement || document.body
+  
+  if (containerElement === document.body) {
+    // 默认行为：挂载到 body，使用文档坐标
+    return {
+      left: rect.left + window.scrollX,
+      top: rect.top + window.scrollY,
+      width: rect.width,
+      height: rect.height,
+      zIndex: props.zIndex ?? 'auto',
+    }
+  } else {
+    // 局部挂载：使用相对于容器的坐标
+    const containerRect = containerElement.getBoundingClientRect()
+    return {
+      left: rect.left - containerRect.left + containerElement.scrollLeft,
+      top: rect.top - containerRect.top + containerElement.scrollTop,
+      width: rect.width,
+      height: rect.height,
+      zIndex: props.zIndex ?? 'auto',
+    }
   }
 }
 
 const createFrame = () => {
   isError.value = false
   isLoading.value = true
+
+  const containerElement = (typeof props.container === 'string' ? document.querySelector(props.container) : props.container) as HTMLElement || document.body
 
   IFrameManager.createFrame(
     {
@@ -83,7 +97,8 @@ const createFrame = () => {
       onLoad: handleLoaded,
       onError: handleError,
       allow: 'fullscreen;autoplay',
-      sandbox: props.sandbox
+      sandbox: props.sandbox,
+      container: containerElement // 传递容器
     },
     getFrameContainerRect(),
   )
@@ -157,7 +172,7 @@ onActivated(() => {
 })
 
 watch(
-  () => [frameContainer.value, props.src, props.srcdoc],
+  () => [frameContainer.value, props.src, props.srcdoc, props.container],
   () => {
     if (frameContainer.value && (props.src || props.srcdoc)) {
       createFrame()

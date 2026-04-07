@@ -9,6 +9,7 @@ interface IframeOptions {
   style?: string
   allow?: string
   sandbox?: string
+  container?: HTMLElement // 新增：允许指定容器
   onLoad?: (e: Event) => void
   onError?: (e: string | Event) => void
 }
@@ -29,6 +30,7 @@ class Iframe {
       style = '',
       allow,
       sandbox,
+      container = document.body,
       onLoad = () => {},
       onError = () => {},
     } = this.ops
@@ -42,17 +44,13 @@ class Iframe {
     if (allow) this.instance.allow = allow
     if (sandbox) this.instance.sandbox = sandbox
 
-    // 不添加 transition，保持瞬间切换，避免白屏视觉效果
-    // 如需平滑过渡可添加：
-    // this.instance.style.transition = 'opacity 0.2s ease-in-out, visibility 0.2s ease-in-out'
-
     this.hide()
     if (srcdoc) {
       this.instance.srcdoc = srcdoc
     } else if (src) {
       this.instance.src = src
     }
-    document.body.appendChild(this.instance)
+    container.appendChild(this.instance)
   }
   setElementStyle(style: Record<string, string>) {
     if (this.instance) {

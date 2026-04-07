@@ -45,10 +45,11 @@ const isError = ref(false)
 let readyFlag = false
 
 const getFrameContainerRect = () => {
-  const rect = frameContainer.value?.getBoundingClientRect()
+  const el = frameContainer.value
+  const rect = el?.getBoundingClientRect()
 
   // 如果容器不存在，返回默认值
-  if (!rect) {
+  if (!rect || !el) {
     return {
       left: 0,
       top: 0,
@@ -72,11 +73,18 @@ const getFrameContainerRect = () => {
   } else {
     // 局部挂载：使用相对于容器的坐标
     const containerRect = containerElement.getBoundingClientRect()
+    // 获取容器的计算样式，以扣除边框的影响
+    const computedStyle = window.getComputedStyle(containerElement)
+    const borderLeft = parseFloat(computedStyle.borderLeftWidth) || 0
+    const borderTop = parseFloat(computedStyle.borderTopWidth) || 0
+
     return {
-      left: rect.left - containerRect.left + containerElement.scrollLeft,
-      top: rect.top - containerRect.top + containerElement.scrollTop,
-      width: rect.width,
-      height: rect.height,
+      // 绝对定位的 origin 是 padding-box 的左上角，即需扣除 border
+      left: rect.left - containerRect.left - borderLeft + containerElement.scrollLeft,
+      top: rect.top - containerRect.top - borderTop + containerElement.scrollTop,
+      // 使用 Math.ceil 避免亚像素导致的切边
+      width: Math.ceil(rect.width),
+      height: Math.ceil(rect.height),
       zIndex: props.zIndex ?? 'auto',
     }
   }

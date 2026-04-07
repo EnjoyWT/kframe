@@ -138,6 +138,12 @@ export class IFrameManager {
   static createFrame(ops: IframeOptions, rect: IframeRect): Iframe {
     const existFrame = this.frames.get(ops.uid)
     if (existFrame) {
+      // 新增：如果容器变了，移动 iframe
+      const container = ops.container || document.body
+      if (existFrame.instance && existFrame.instance.parentElement !== container) {
+        container.appendChild(existFrame.instance)
+      }
+
       // If srcdoc changed, update it instead of destroying
       if (ops.srcdoc && existFrame.instance && existFrame.instance.srcdoc !== ops.srcdoc) {
         existFrame.updateSrcDoc(ops.srcdoc)

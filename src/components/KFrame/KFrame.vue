@@ -10,7 +10,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { onActivated, onBeforeUnmount, onDeactivated, ref, watch, computed } from 'vue'
+import { onActivated, onBeforeUnmount, onDeactivated, ref, watch, computed, onMounted } from 'vue'
 import { IFrameManager, getIncreaseId } from './core'
 import { useResizeObserver } from '@vueuse/core'
 
@@ -118,11 +118,22 @@ const getFrame = () => {
   return IFrameManager.getFrame(uid.value)
 }
 
+// 监听滚动事件，确保在嵌套滚动容器中也能正确跟随
+const handleScroll = () => {
+  resizeFrame()
+}
+
+onMounted(() => {
+  // 使用 capture: true 确保能捕获所有层级的滚动事件
+  window.addEventListener('scroll', handleScroll, true)
+})
+
 useResizeObserver(frameContainer, () => {
   resizeFrame()
 })
 
 onBeforeUnmount(() => {
+  window.removeEventListener('scroll', handleScroll, true)
   destroyFrame()
   readyFlag = false
 })

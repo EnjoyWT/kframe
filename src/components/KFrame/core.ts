@@ -9,7 +9,8 @@ interface IframeOptions {
   style?: string
   allow?: string
   sandbox?: string
-  container?: HTMLElement // 新增：允许指定容器
+  container?: HTMLElement
+  renderMode?: 'portal' | 'inline'
   onLoad?: (e: Event) => void
   onError?: (e: string | Event) => void
 }
@@ -21,6 +22,11 @@ class Iframe {
   constructor(private ops: IframeOptions) {
     this.init()
   }
+
+  private isInlineMode(): boolean {
+    return this.ops.renderMode === 'inline'
+  }
+
   init() {
     const {
       src,
@@ -60,8 +66,21 @@ class Iframe {
     }
   }
   hide() {
-    // 新方案：使用 opacity + visibility，避免 display:none 导致的白屏问题
-    // iframe 保持渲染状态，切换更流畅
+    if (this.isInlineMode()) {
+      this.setElementStyle({
+        opacity: '0',
+        'pointer-events': 'none',
+        visibility: 'hidden',
+        position: 'absolute',
+        left: '0',
+        top: '0',
+        width: '0',
+        height: '0',
+        border: '0',
+      })
+      return
+    }
+
     this.setElementStyle({
       opacity: '0',
       'pointer-events': 'none',
@@ -72,19 +91,24 @@ class Iframe {
       width: '0',
       height: '0',
     })
-
-    // 旧方案（如需恢复请使用以下代码）：
-    // this.setElementStyle({
-    //   display: 'none',
-    //   position: 'absolute',
-    //   left: '0px',
-    //   top: '0px',
-    //   width: '0px',
-    //   height: '0px',
-    // })
   }
   show(rect: IframeRect) {
-    // 新方案：使用 opacity + visibility，保持渲染状态
+    if (this.isInlineMode()) {
+      this.setElementStyle({
+        opacity: '1',
+        'pointer-events': 'auto',
+        visibility: 'visible',
+        position: 'static',
+        left: 'auto',
+        top: 'auto',
+        width: '100%',
+        height: '100%',
+        border: '0',
+        'z-index': String(rect.zIndex) || 'auto',
+      })
+      return
+    }
+
     this.setElementStyle({
       opacity: '1',
       'pointer-events': 'auto',
@@ -97,18 +121,6 @@ class Iframe {
       border: '0',
       'z-index': String(rect.zIndex) || 'auto',
     })
-
-    // 旧方案（如需恢复请使用以下代码）：
-    // this.setElementStyle({
-    //   display: 'block',
-    //   position: 'absolute',
-    //   left: rect.left + 'px',
-    //   top: rect.top + 'px',
-    //   width: rect.width + 'px',
-    //   height: rect.height + 'px',
-    //   border: '0',
-    //   'z-index': String(rect.zIndex) || 'auto',
-    // })
   }
   resize(rect: IframeRect) {
     this.show(rect)

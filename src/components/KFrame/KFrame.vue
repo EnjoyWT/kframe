@@ -27,17 +27,20 @@ const props = withDefaults(
     keepAlive?: boolean
     sandbox?: string
     container?: HTMLElement | string
+    renderMode?: 'portal' | 'inline'
   }>(),
   {
     src: '',
     keepAlive: true,
-    sandbox: 'allow-scripts'
+    sandbox: 'allow-scripts',
+    renderMode: 'portal'
   },
 )
 
 const emits = defineEmits(['loaded', 'error'])
 
 const internalUid = `kFrame-${getIncreaseId()}`
+const isInlineMode = computed(() => props.renderMode === 'inline')
 const uid = computed(() => props.uid || internalUid)
 const frameContainer = ref()
 const isLoading = ref(false)
@@ -94,7 +97,9 @@ const createFrame = () => {
   isError.value = false
   isLoading.value = true
 
-  const containerElement = (typeof props.container === 'string' ? document.querySelector(props.container) : props.container) as HTMLElement || document.body
+  const resolvedContainer = ((typeof props.container === 'string' ? document.querySelector(props.container) : props.container) as HTMLElement) || document.body
+  const containerElement = (isInlineMode.value ? frameContainer.value : resolvedContainer) as HTMLElement | undefined
+  if (!containerElement) return
 
   IFrameManager.createFrame(
     {
@@ -106,7 +111,8 @@ const createFrame = () => {
       onError: handleError,
       allow: 'fullscreen;autoplay',
       sandbox: props.sandbox,
-      container: containerElement // 传递容器
+      container: containerElement,
+      renderMode: props.renderMode,
     },
     getFrameContainerRect(),
   )
@@ -143,17 +149,29 @@ const getFrame = () => {
 
 // 监听滚动事件，确保在嵌套滚动容器中也能正确跟随
 const handleScroll = () => {
+  if (isInlineMode.value) return
   resizeFrame()
 }
 
 onMounted(() => {
-  // 使用 capture: true 确保能捕获所有层级的滚动事件
-  window.addEventListener('scroll', handleScroll, true)
+  if (!isInlineMode.value) {
+    window.addEventListener('scroll', handleScroll, true)
+  }
 })
 
 useResizeObserver(frameContainer, () => {
   resizeFrame()
 })
+
+watch(isInlineMode, (inline) => {
+  if (inline) {
+    window.removeEventListener('scroll', handleScroll, true)
+    resizeFrame()
+    return
+  }
+  window.addEventListener('scroll', handleScroll, true)
+  resizeFrame()
+}, { immediate: false })
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll, true)
@@ -180,7 +198,7 @@ onActivated(() => {
 })
 
 watch(
-  () => [frameContainer.value, props.src, props.srcdoc, props.container],
+  () => [frameContainer.value, props.src, props.srcdoc, props.container, props.renderMode],
   () => {
     if (frameContainer.value && (props.src || props.srcdoc)) {
       createFrame()
